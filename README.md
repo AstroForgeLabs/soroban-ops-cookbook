@@ -1,6 +1,6 @@
 # Soroban Ops Cookbook
 
-[![CI](https://github.com/SmartCraftGroup/soroban-ops-cookbook/actions/workflows/ci.yml/badge.svg)](https://github.com/SmartCraftGroup/soroban-ops-cookbook/actions/workflows/ci.yml)
+[![CI](https://github.com/AstroForgeLabs/soroban-ops-cookbook/actions/workflows/ci.yml/badge.svg)](https://github.com/AstroForgeLabs/soroban-ops-cookbook/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Soroban SDK](https://img.shields.io/badge/Soroban--SDK-v22.0.0-purple.svg)](https://crates.io/crates/soroban-sdk)
 [![Drips Wave](https://img.shields.io/badge/Drips-Stellar%20Wave-blue.svg)](https://drips.network)
@@ -36,8 +36,8 @@ Contributions are welcome! Please check out [`CONTRIBUTING.md`](./CONTRIBUTING.m
 
 Made with [contrib.rocks](https://contrib.rocks).
 
-<a href="https://github.com/SmartCraftGroup/soroban-ops-cookbook/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=SmartCraftGroup/soroban-ops-cookbook" alt="Contributors" />
+<a href="https://github.com/AstroForgeLabs/soroban-ops-cookbook/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=AstroForgeLabs/soroban-ops-cookbook" alt="Contributors" />
 </a>
 
 ## License

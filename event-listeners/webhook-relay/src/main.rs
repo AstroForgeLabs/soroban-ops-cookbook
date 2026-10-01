@@ -345,3 +345,83 @@ async fn main() -> Result<()> {
         tokio::time::sleep(Duration::from_secs(poll_interval)).await;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn make_event(topics: Vec<serde_json::Value>) -> SorobanEvent {
+        SorobanEvent {
+            contract_id: "CTEST".to_string(),
+            id: "100-1-0".to_string(),
+            ledger: 100,
+            ledger_closed_at: "2024-01-01T00:00:00Z".to_string(),
+            topic: topics,
+            value: json!({"amount": "1000"}),
+        }
+    }
+
+    #[test]
+    fn topic_filter_none_matches_all_events() {
+        let event = make_event(vec![json!("transfer")]);
+        assert!(matches_topic_filter(&event, &None));
+    }
+
+    #[test]
+    fn topic_filter_empty_vec_matches_all_events() {
+        let event = make_event(vec![json!("transfer")]);
+        assert!(matches_topic_filter(&event, &Some(vec![])));
+    }
+
+    #[test]
+    fn topic_filter_matches_substring_in_topic() {
+        let event = make_event(vec![json!("transfer_native")]);
+        let filter = Some(vec!["transfer".to_string()]);
+        assert!(matches_topic_filter(&event, &filter));
+    }
+
+    #[test]
+    fn topic_filter_rejects_non_matching_topic() {
+        let event = make_event(vec![json!("approve")]);
+        let filter = Some(vec!["burn".to_string()]);
+        assert!(!matches_topic_filter(&event, &filter));
+    }
+
+    #[test]
+    fn topic_filter_matches_any_topic_value() {
+        let event = make_event(vec![json!("clawback"), json!("burn_from")]);
+        let filter = Some(vec!["burn".to_string()]);
+        assert!(matches_topic_filter(&event, &filter));
+    }
+
+    #[test]
+    fn webhook_payload_serializes_correctly() {
+        let event = make_event(vec![json!("transfer")]);
+        let payload = WebhookPayload {
+            event_id: event.id.clone(),
+            contract_id: event.contract_id.clone(),
+            ledger: event.ledger,
+            ledger_closed_at: event.ledger_closed_at.clone(),
+            topic: event.topic.clone(),
+            value: event.value.clone(),
+            delivered_at: "2024-01-01T00:00:00Z".to_string(),
+        };
+        let json_str = serde_json::to_string(&payload).unwrap();
+        assert!(json_str.contains("event_id"));
+        assert!(json_str.contains("contract_id"));
+        assert!(json_str.contains("CTEST"));
+    }
+
+    #[test]
+    fn backoff_duration_caps_at_32_seconds() {
+        // Verify the 1 << attempt.min(5) backoff formula
+        let backoff = |attempt: u32| std::time::Duration::from_secs(1u64 << attempt.min(5));
+        assert_eq!(backoff(0).as_secs(), 1);
+        assert_eq!(backoff(1).as_secs(), 2);
+        assert_eq!(backoff(3).as_secs(), 8);
+        assert_eq!(backoff(5).as_secs(), 32);
+        assert_eq!(backoff(10).as_secs(), 32); // caps at 5
+    }
+}
+

@@ -393,3 +393,66 @@ async fn main() -> Result<()> {
         tokio::time::sleep(Duration::from_secs(poll_interval)).await;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn make_event(topics: Vec<serde_json::Value>) -> SorobanEvent {
+        SorobanEvent {
+            contract_id: "CTEST".to_string(),
+            id: "1-1".to_string(),
+            ledger: 100,
+            ledger_closed_at: "2024-01-01T00:00:00Z".to_string(),
+            topic: topics,
+            value: json!({}),
+        }
+    }
+
+    #[test]
+    fn topic_filter_none_matches_all() {
+        let event = make_event(vec![json!("transfer")]);
+        assert!(matches_topic_filter(&event, &None));
+    }
+
+    #[test]
+    fn topic_filter_empty_vec_matches_all() {
+        let event = make_event(vec![json!("transfer")]);
+        assert!(matches_topic_filter(&event, &Some(vec![])));
+    }
+
+    #[test]
+    fn topic_filter_matches_substring() {
+        let event = make_event(vec![json!("transfer_funds")]);
+        let filter = Some(vec!["transfer".to_string()]);
+        assert!(matches_topic_filter(&event, &filter));
+    }
+
+    #[test]
+    fn topic_filter_rejects_non_matching() {
+        let event = make_event(vec![json!("mint")]);
+        let filter = Some(vec!["burn".to_string()]);
+        assert!(!matches_topic_filter(&event, &filter));
+    }
+
+    #[test]
+    fn topic_filter_matches_any_topic_in_list() {
+        let event = make_event(vec![json!("approve"), json!("transfer")]);
+        let filter = Some(vec!["transfer".to_string()]);
+        assert!(matches_topic_filter(&event, &filter));
+    }
+
+    #[test]
+    fn chrono_parses_valid_rfc3339() {
+        let result = chrono_from_rfc3339("2024-06-15T12:00:00Z");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn chrono_rejects_invalid_timestamp() {
+        let result = chrono_from_rfc3339("not-a-date");
+        assert!(result.is_err());
+    }
+}
+

@@ -424,4 +424,3 @@ mod tests {
         assert_eq!(backoff(10).as_secs(), 32); // caps at 5
     }
 }
-
